@@ -5,25 +5,54 @@ using System.Threading.Tasks;
 using System.Text.Json;
 using System.Net.Http;
 using Microsoft.Extensions.Configuration;
+using CP380_B1_BlockList.Models;
 
 namespace CP380_B3_BlockBlazor.Data
 {
     public class BlockService
     {
-        // TODO: Add variables for the dependency-injected resources
-        //       - httpClient
-        //       - configuration
-        //
+        
+        static HttpClient _httpClient;
+        private readonly IConfiguration _config;
+        private readonly JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+        public BlockService(IHttpClientFactory httpClientFactory, IConfiguration configuration)
 
-        //
-        // TODO: Add a constructor with IConfiguration and IHttpClientFactory arguments
-        //
 
-        //
-        // TODO: Add an async method that returns an IEnumerable<Block> (list of Blocks)
-        //       from the web service
-        //
+        {
+            _httpClient = httpClientFactory.CreateClient();
+            _config = configuration.GetSection("BlockService");
+        }
 
+
+        public async Task<IEnumerable<Block>> GetBlock()
+        {
+            var d = await _httpClient.GetAsync(_config["url"]);
+
+            if (d.IsSuccessStatusCode)
+            {
+                JsonSerializerOptions options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+                return await JsonSerializer.DeserializeAsync<IEnumerable<Block>>(
+                        await d.Content.ReadAsStreamAsync(), options
+                    );
+            }
+
+
+
+            return Array.Empty<Block>();
+        }
+        public async Task<Block> SubmitNewBlockAsync(Block block)
+        {
+            var content = new StringContent(
+               JsonSerializer.Serialize(block, JsonSerializerOptions),
+               System.Text.Encoding.UTF8,
+               "application/json"
+               );
+
+            var res = await _httpClient.PostAsync(_config["url"], content);
+            if (res.IsSuccessStatusCode)
+                return block;
+            else
+                return null;
+        }
     }
-}
 }

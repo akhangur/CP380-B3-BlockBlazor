@@ -28,8 +28,13 @@ namespace CP380_B3_BlockBlazor
             //
             // TODO: ADD THE HTTPCLIENT SERVICE
             //
+            services.AddHttpClient();//Add the httpclient service 
             services.AddRazorPages();
             services.AddServerSideBlazor();
+            
+
+            services.AddSingleton<BlockService>();
+            services.AddSingleton<PendingTransactionService>();
             //
             // TODO: ADD SINGLETONS FOR:
             //       - pending transactions service
